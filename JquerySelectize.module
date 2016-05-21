@@ -1,0 +1,73 @@
+<?php
+
+/**
+ * JS module for Selectize.js
+ * http://selectize.github.io/selectize.js/
+ */
+
+class JquerySelectize extends ModuleJS implements ConfigurableModule {
+
+    public static function getModuleInfo() {
+        return array(
+                'title' => 'Selectize.js Plugin',
+                'version' => 100,
+                'summary' => 'Provides Selectize.js for use in ProcessWire.',
+                'href' => 'http://selectize.github.io/selectize.js/',
+                );
+        }
+
+
+    /**
+     * __construct() is the right place to init config vars before they'll get populated
+     *
+     */
+    public function __construct() {
+        $this->configData = $this->modules->getModuleConfigData($this);
+        $this->skins = ['none','default','bootstrap2','bootstrap3','legacy'];
+    }
+
+
+    /**
+     * Per the Module interface, Initialize the Process, loading any related CSS or JS files
+     *
+     */
+    public function init() {
+        parent::init();
+
+        $name = $this->classname();
+        $info = $this->getModuleInfo();
+        $version = (int) $info['version'];
+
+        $this->config->styles->add($this->config->urls->$name . "selectize/dist/css/selectize.css?v=$version");
+
+        if(isset($this->configData['skin']) && $this->configData['skin'] > 0) {
+            $i = $this->configData['skin'];
+            $this->config->styles->add($this->config->urls->$name . "selectize/dist/css/selectize." . $this->skins[$i] .  ".css?v=$version");
+        }
+        $this->config->scripts->add($this->config->urls->$name . "selectize/dist/js/standalone/selectize.min.js?v=$version");
+    }
+
+
+    /**
+     * Return an InputfieldsWrapper of Inputfields used to configure the class
+     *
+     * @param array $data Array of config values indexed by field name
+     * @return InputfieldsWrapper
+     *
+     */
+    public function getModuleConfigInputfields(array $data) {
+        $wrapper = new InputFieldWrapper();
+        $options = $this->skins;
+        $field = wire('modules')->get("InputfieldSelect");
+        $field->attr('name', 'skin');
+        $field->label = "Choose skin";
+        $field->attr('value', (isset($data['skin']) ? $data['skin'] : 0));
+        $field->addOptions($options);
+        $wrapper->add($field);
+        return $wrapper;
+    }
+
+
+
+}
+
