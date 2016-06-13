@@ -622,7 +622,7 @@ $.extend(Selectize.prototype, {
 			self.refreshState();
 
 			// IE11 bug: element still marked as active
-			(dest || document.body).focus();
+			dest && dest.focus();
 
 			self.ignoreFocus = false;
 			self.trigger('blur');
@@ -1184,7 +1184,7 @@ $.extend(Selectize.prototype, {
 	 */
 	registerOption: function(data) {
 		var key = hash_key(data[this.settings.valueField]);
-		if (!key || this.options.hasOwnProperty(key)) return false;
+		if (typeof key === 'undefined' || key === null || this.options.hasOwnProperty(key)) return false;
 		data.$order = data.$order || ++this.order;
 		this.options[key] = data;
 		return key;
@@ -1487,7 +1487,7 @@ $.extend(Selectize.prototype, {
 		var self = this;
 		var $item, i, idx;
 
-		$item = (typeof value === 'object') ? value : self.getItem(value);
+		$item = (value instanceof $) ? value : self.getItem(value);
 		value = hash_key($item.attr('data-value'));
 		i = self.items.indexOf(value);
 
