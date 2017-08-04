@@ -10,7 +10,7 @@ class JquerySelectize extends ModuleJS implements ConfigurableModule {
     public static function getModuleInfo() {
         return array(
                 'title' => 'Selectize.js Plugin',
-                'version' => 100,
+                'version' => 101,
                 'summary' => 'Provides Selectize.js for use in ProcessWire.',
                 'href' => 'http://selectize.github.io/selectize.js/',
                 );
@@ -38,13 +38,26 @@ class JquerySelectize extends ModuleJS implements ConfigurableModule {
         $info = $this->getModuleInfo();
         $version = (int) $info['version'];
 
-        $this->config->styles->add($this->config->urls->$name . "selectize/dist/css/selectize.css?v=$version");
+        // Check to see if version is 3.0.67 or higher, which is when selectize was added to core..
+        if($this->config->version > '3.0.66') {
+            $this->wire('modules')->get('JqueryUI')->use('selectize');
+        } else {
+            $this->config->styles->add($this->config->urls->$name . "selectize/dist/css/selectize.css?v=$version");
+            $this->config->scripts->add($this->config->urls->$name . "selectize/dist/js/standalone/selectize.min.js?v=$version");
+        }
 
         if(isset($this->configData['skin']) && $this->configData['skin'] > 0) {
             $i = $this->configData['skin'];
-            $this->config->styles->add($this->config->urls->$name . "selectize/dist/css/selectize." . $this->skins[$i] .  ".css?v=$version");
+            if($this->config->version > '3.0.66') {
+                $coreSkin = $this->config->urls->modules . 'Jquery/JqueryUI/selectize/css/selectize.' .  $this->skins[$i] . ".css?v=$version";
+                $this->config->styles->add($coreSkin);
+            } else {
+                $modSkin = $this->config->urls->$name . "selectize/dist/css/selectize." . $this->skins[$i] .  ".css?v=$version";
+                $this->config->styles->add($modSkin);
+            }
         }
-        $this->config->scripts->add($this->config->urls->$name . "selectize/dist/js/standalone/selectize.min.js?v=$version");
+
+
     }
 
 
