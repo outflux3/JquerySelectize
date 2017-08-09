@@ -10,11 +10,25 @@ class JquerySelectize extends ModuleJS implements ConfigurableModule {
     public static function getModuleInfo() {
         return array(
                 'title' => 'Selectize.js Plugin',
-                'version' => 101,
+                'version' => 102,
                 'summary' => 'Provides Selectize.js for use in ProcessWire.',
                 'href' => 'http://selectize.github.io/selectize.js/',
                 );
         }
+
+
+
+    protected static $configDefaults = array(
+        'skins'  => ['none','default','bootstrap2','bootstrap3','legacy'],
+        'forceLoad'  => 0, // force load library from module, even for PW v+=3.0.67
+    );
+
+
+    /**
+     * Data as used by the get/set functions
+     *
+     */
+    protected $data = array();
 
 
     /**
@@ -22,8 +36,11 @@ class JquerySelectize extends ModuleJS implements ConfigurableModule {
      *
      */
     public function __construct() {
-        $this->configData = $this->modules->getModuleConfigData($this);
-        $this->skins = ['none','default','bootstrap2','bootstrap3','legacy'];
+        //$this->configData = $this->modules->getModuleConfigData($this);
+        //$this->skins = ['none','default','bootstrap2','bootstrap3','legacy'];
+        foreach(self::$configDefaults as $key => $value) {
+            $this->set($key, $value); 
+        }
     }
 
 
@@ -38,17 +55,22 @@ class JquerySelectize extends ModuleJS implements ConfigurableModule {
         $info = $this->getModuleInfo();
         $version = (int) $info['version'];
 
-        // Check to see if version is 3.0.67 or higher, which is when selectize was added to core..
-        if($this->config->version > '3.0.66') {
+        $loadFrom = $this->forceLoad ? 'mod' : 'core';
+        if($this->config->version < '3.0.67') $loadFrom = 'mod';
+
+        if($loadFrom == 'core') {
             $this->wire('modules')->get('JqueryUI')->use('selectize');
         } else {
             $this->config->styles->add($this->config->urls->$name . "selectize/dist/css/selectize.css?v=$version");
-            $this->config->scripts->add($this->config->urls->$name . "selectize/dist/js/standalone/selectize.min.js?v=$version");
+
+            $min = $this->config->debug ? '' : '.min';
+            $this->config->scripts->add($this->config->urls->$name . "selectize/dist/js/standalone/selectize{$min}.js?v=$version");
         }
 
-        if(isset($this->configData['skin']) && $this->configData['skin'] > 0) {
-            $i = $this->configData['skin'];
-            if($this->config->version > '3.0.66') {
+
+        if(isset($this->skin) && $this->skin > 0) {
+            $i = $this->skin;
+            if($loadFrom == 'core') {
                 $coreSkin = $this->config->urls->modules . 'Jquery/JqueryUI/selectize/css/selectize.' .  $this->skins[$i] . ".css?v=$version";
                 $this->config->styles->add($coreSkin);
             } else {
@@ -57,7 +79,21 @@ class JquerySelectize extends ModuleJS implements ConfigurableModule {
             }
         }
 
+        if($this->forceLoad) {
+            $this->addHookBefore("JqueryUI::use", $this, "hookJqueryUIuse_preventLoad");
+        }
 
+    }
+
+
+    public function hookJqueryUIuse_preventLoad(HookEvent $event) {
+
+        $name = $event->arguments[0];
+        $object = $event->object;
+        if($name == 'selectize') {
+            $event->replace = true;
+            $event->return = false;
+        }
     }
 
 
@@ -69,15 +105,31 @@ class JquerySelectize extends ModuleJS implements ConfigurableModule {
      *
      */
     public function getModuleConfigInputfields(array $data) {
+
         $wrapper = new InputFieldWrapper();
         $options = $this->skins;
+
         $field = wire('modules')->get("InputfieldSelect");
         $field->attr('name', 'skin');
         $field->label = "Choose skin";
         $field->attr('value', (isset($data['skin']) ? $data['skin'] : 0));
         $field->addOptions($options);
         $wrapper->add($field);
+
+
+        $field = wire('modules')->get("InputfieldCheckbox");
+        $field->attr('name', 'forceLoad');
+        $field->label = "Force load module version of Selectize";
+        $field->attr('value', 1); 
+        if($data['forceLoad']) $field->attr('checked', 'checked'); 
+        $field->description = __('Check this box to force loading of module css & js.');
+        $field->notes = __('This is primarily for testing, in case you run into any problems with the core version.'); 
+
+        $wrapper->add($field);
+
         return $wrapper;
+
+
     }
 
 
