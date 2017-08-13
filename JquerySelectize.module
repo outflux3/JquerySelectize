@@ -116,16 +116,20 @@ class JquerySelectize extends ModuleJS implements ConfigurableModule {
         $field->addOptions($options);
         $wrapper->add($field);
 
+        if($this->config->version > '3.0.66') {
 
-        $field = wire('modules')->get("InputfieldCheckbox");
-        $field->attr('name', 'forceLoad');
-        $field->label = "Force load module version of Selectize";
-        $field->attr('value', 1); 
-        if($data['forceLoad']) $field->attr('checked', 'checked'); 
-        $field->description = __('Check this box to force loading of module css & js.');
-        $field->notes = __('This is primarily for testing, in case you run into any problems with the core version.'); 
+            $field = wire('modules')->get("InputfieldCheckbox");
+            $field->attr('name', 'forceLoad');
+            $field->label = "Force load module version of Selectize";
+            $field->attr('value', 1); 
+            if($data['forceLoad']) $field->attr('checked', 'checked'); 
+            $field->description = __('Check this box to force loading of module css & js.');
+            $field->notes = __('This is primarily for testing, in case you run into any problems with the core version.'); 
 
-        $wrapper->add($field);
+            $wrapper->add($field);
+
+        }
+
 
         return $wrapper;
 
