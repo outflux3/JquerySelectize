@@ -10,7 +10,7 @@ class JquerySelectize extends ModuleJS implements ConfigurableModule {
     public static function getModuleInfo() {
         return array(
                 'title' => 'Selectize.js Plugin',
-                'version' => 103,
+                'version' => 104,
                 'summary' => 'Provides Selectize.js for use in ProcessWire.',
                 'href' => 'http://selectize.github.io/selectize.js/',
                 );
@@ -56,7 +56,9 @@ class JquerySelectize extends ModuleJS implements ConfigurableModule {
         $version = (int) $info['version'];
 
         $loadFrom = $this->forceLoad ? 'mod' : 'core';
-        if($this->config->version < '3.0.67') $loadFrom = 'mod';
+        if(version_compare($this->config->version, '3.0.67', '<')) {
+            $loadFrom = 'mod';
+        }
 
         if($loadFrom == 'core') {
             $this->wire('modules')->get('JqueryUI')->use('selectize');
@@ -116,7 +118,7 @@ class JquerySelectize extends ModuleJS implements ConfigurableModule {
         $field->addOptions($options);
         $wrapper->add($field);
 
-        if($this->config->version > '3.0.66') {
+        if(version_compare($this->config->version, '3.0.66', '>')) {
 
             $field = wire('modules')->get("InputfieldCheckbox");
             $field->attr('name', 'forceLoad');
