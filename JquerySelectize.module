@@ -10,7 +10,7 @@ class JquerySelectize extends ModuleJS implements ConfigurableModule {
     public static function getModuleInfo() {
         return array(
                 'title' => 'Selectize.js Plugin',
-                'version' => 104,
+                'version' => 105,
                 'summary' => 'Provides Selectize.js for use in ProcessWire.',
                 'href' => 'http://selectize.github.io/selectize.js/',
                 );
